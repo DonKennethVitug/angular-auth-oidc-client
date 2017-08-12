@@ -1,4 +1,4 @@
-﻿import { PLATFORM_ID, Inject } from '@angular/core';
+import { PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { Injectable, EventEmitter, Output } from '@angular/core';
 import { Http, Response, URLSearchParams } from '@angular/http';
@@ -16,6 +16,8 @@ import { OidcSecurityCommon } from './oidc.security.common';
 import { AuthWellKnownEndpoints } from './auth.well-known-endpoints';
 
 import { JwtKeys } from './jwtkeys';
+
+
 
 @Injectable()
 export class OidcSecurityService {
@@ -161,7 +163,89 @@ export class OidcSecurityService {
         this.oidcSecurityCommon.logDebug('AuthorizedController created. local state: ' + this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_auth_state_control));
 
         let url = this.createAuthorizeUrl(nonce, state, this.authWellKnownEndpoints.authorization_endpoint);
+        //this.popup(url, 'QPONS\' AUTHORIZATION PAGE', 500, 500);
+
         window.location.href = url;
+    }
+
+    authorizeWithPopup() {
+
+        let data = this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_well_known_endpoints);
+        if (data && data !== '') {
+            this.authWellKnownEndpointsLoaded = true;
+        }
+
+        if (!this.authWellKnownEndpointsLoaded) {
+            this.oidcSecurityCommon.logError('Well known endpoints must be loaded before user can login!')
+            return;
+        }
+
+        if (!this.oidcSecurityValidation.config_validate_response_type(this.authConfiguration.response_type)) {
+            // invalid response_type
+            return
+        }
+
+        this.resetAuthorizationData(false);
+
+        this.oidcSecurityCommon.logDebug('BEGIN Authorize, no auth data');
+
+        let nonce = 'N' + Math.random() + '' + Date.now();
+        let state = Date.now() + '' + Math.random();
+
+        this.oidcSecurityCommon.store(this.oidcSecurityCommon.storage_auth_state_control, state);
+        this.oidcSecurityCommon.store(this.oidcSecurityCommon.storage_auth_nonce, nonce);
+        this.oidcSecurityCommon.logDebug('AuthorizedController created. local state: ' + this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_auth_state_control));
+
+        let url = this.createAuthorizeUrl(nonce, state, this.authWellKnownEndpoints.authorization_endpoint);
+        this.popup(url, 'QPONS\' AUTHORIZATION PAGE', 500, 500);
+
+        //window.location.href = url;
+    }
+
+    private CheckForPopupClosedInterval: number;
+    private _checkForPopupClosedTimer: any;
+    private _popup: any;
+
+    popup(url: string, title: string, width: number, height: number) {
+      let options: string;
+      let left = (screen.width/2) - (width/2);
+      let top = (screen.height/2) - (height/2);
+      this.CheckForPopupClosedInterval = 500;
+
+      options += 'toolbar=no,location=no,directories=no,status=no';
+      options += ',menubar=no,scrollbars=no,resizable=no,copyhistory=no';
+
+      options += ',width='  + width;
+      options += ',height=' + height;
+      options += ',top='    + top;
+      options += ',left='   + left;
+
+      this._popup = window.open(url, title, options);
+      this._checkForPopupClosedTimer = window.setInterval(this._checkForPopupClosed.bind(this), this.CheckForPopupClosedInterval);
+    }
+
+    popup_cleanup() {
+
+        window.clearInterval(this._checkForPopupClosedTimer);
+        this._checkForPopupClosedTimer = null;
+        this._popup = null;
+
+    }
+
+    _checkForPopupClosed() {
+      try {
+        //console.log(this._popup.location.href);
+        if(this._popup.location.href != 'about:blank') {
+          this._popup.close();
+          if (!this._popup || this._popup.closed) {
+              console.log("Popup window closed");
+              this.authorize();
+              this.popup_cleanup();
+          }
+        }
+      } catch(err) {
+        //console.log(err);
+      }
     }
 
     authorizedCallback() {
@@ -410,7 +494,7 @@ export class OidcSecurityService {
         params.set('scope', this.authConfiguration.scope);
         params.set('nonce', nonce);
         params.set('state', state);
-       
+
         let customParams = Object.assign({}, this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_custom_request_params));
 
         Object.keys(customParams).forEach(key => {

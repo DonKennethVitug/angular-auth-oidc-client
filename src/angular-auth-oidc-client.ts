@@ -10,5 +10,3 @@ export { AuthWellKnownEndpoints } from './services/auth.well-known-endpoints';
 
 export { AuthConfiguration, OpenIDImplicitFlowConfiguration, DefaultConfiguration } from './modules/auth.configuration';
 export { AuthModule } from './modules/auth.module';
-
-
