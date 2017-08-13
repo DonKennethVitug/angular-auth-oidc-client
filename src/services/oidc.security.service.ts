@@ -197,7 +197,7 @@ export class OidcSecurityService {
         this.oidcSecurityCommon.logDebug('AuthorizedController created. local state: ' + this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_auth_state_control));
 
         let url = this.createAuthorizeUrl(nonce, state, this.authWellKnownEndpoints.authorization_endpoint);
-        this.popup(url, 'QPONS\' AUTHORIZATION PAGE', 500, 500);
+        this.popup(url, 'QPONS\' AUTHORIZATION PAGE', 800, 800);
 
         //window.location.href = url;
     }
@@ -206,17 +206,24 @@ export class OidcSecurityService {
     private _checkForPopupClosedTimer: any;
     private _popup: any;
 
-    popup(url: string, title: string, width: number, height: number) {
+    popup(url: string, title: string, w: number, h: number) {
       let options: string;
-      let left = (screen.width/2) - (width/2);
-      let top = (screen.height/2) - (height/2);
       this.CheckForPopupClosedInterval = 500;
+
+      let dualScreenLeft = window.screenLeft != undefined ? window.screenLeft : 0;
+      let dualScreenTop = window.screenTop != undefined ? window.screenTop : 0;
+
+      let width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : window.screen.width;
+      let height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : window.screen.height;
+
+      let left = ((width / 2) - (w / 2)) + dualScreenLeft;
+      let top = ((height / 2) - (h / 2)) + dualScreenTop;
 
       options += 'toolbar=no,location=no,directories=no,status=no';
       options += ',menubar=no,scrollbars=no,resizable=no,copyhistory=no';
 
-      options += ',width='  + width;
-      options += ',height=' + height;
+      options += ',width='  + w;
+      options += ',height=' + h;
       options += ',top='    + top;
       options += ',left='   + left;
 
