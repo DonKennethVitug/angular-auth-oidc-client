@@ -263,7 +263,9 @@ export class OidcSecurityService {
                 //this.authorize();
             }
           } else {
-            this.authorizeWithPopup();
+            if (!this._popup || this._popup.closed) {
+              this.authorizeWithPopup();
+            }
           }
 
         }
