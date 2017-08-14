@@ -203,14 +203,19 @@ export class OidcSecurityService {
         this.oidcSecurityCommon.logDebug('AuthorizedController created. local state: ' + this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_auth_state_control));
 
         let url = this.createAuthorizeUrl(nonce, state, this.authWellKnownEndpoints.authorization_endpoint);
-        this.popup(url, 'QPONS\' AUTHORIZATION PAGE', 800, 800);
+
+        if(this._popup != null || this._popup != undefined) {
+          this._popup.location.href = url;
+        } else {
+          this.popup(url, 'QPONS\' AUTHORIZATION PAGE', 800, 800);
+        }
 
         //window.location.href = url;
     }
 
     popup(url: string, title: string, w: number, h: number) {
       let options: string;
-      this.CheckForPopupClosedInterval = 500;
+      this.CheckForPopupClosedInterval = 2000;
 
       let dualScreenLeft = window.screenLeft != undefined ? window.screenLeft : 0;
       let dualScreenTop = window.screenTop != undefined ? window.screenTop : 0;
@@ -230,7 +235,11 @@ export class OidcSecurityService {
       options += ',left='   + left;
 
       this._popup = window.open(url, title, options);
-      this._checkForPopupClosedTimer = window.setInterval(this._checkForPopupClosed.bind(this), this.CheckForPopupClosedInterval);
+      if(this._popupFor == "login") {
+        this._checkForPopupClosedTimer = window.setInterval(this._checkForPopupClosed.bind(this), this.CheckForPopupClosedInterval);
+      } else if(this._popupFor == "logout") {
+        this._checkForPopupClosedTimer = window.setInterval(this._checkForLogoutPopupClosed.bind(this), this.CheckForPopupClosedInterval);
+      }
     }
 
     popup_cleanup() {
@@ -244,13 +253,32 @@ export class OidcSecurityService {
     _checkForPopupClosed() {
       try {
         //console.log(this._popup.location.href);
+        if(this._popup.location.href != 'about:blank' && this._popup.location.href != undefined) {
+          if(this._popup.location.href != 'http://localhost:4200/login') {
+            this._popup.close();
+            if (!this._popup || this._popup.closed) {
+                //console.log("Popup window closed");
+                  this.authorizedCallback();
+                  this.popup_cleanup();
+                //this.authorize();
+            }
+          } else {
+            this.authorizeWithPopup();
+          }
+
+        }
+      } catch(err) {
+        //console.log(err);
+      }
+    }
+
+    _checkForLogoutPopupClosed() {
+      try {
+        //console.log(this._popup.location.href);
         if(this._popup.location.href != 'about:blank') {
           this._popup.close();
           if (!this._popup || this._popup.closed) {
               console.log("Popup window closed");
-              if(this._popupFor == "login") {
-                this.authorizedCallback();
-              }
               //this.authorize();
               this.popup_cleanup();
           }
