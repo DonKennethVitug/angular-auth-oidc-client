@@ -37,6 +37,11 @@ export class OidcSecurityService {
     private jwtKeys: JwtKeys;
     private authWellKnownEndpointsLoaded = false;
 
+    private CheckForPopupClosedInterval: number;
+    private _checkForPopupClosedTimer: any;
+    private _popup: any;
+    private _popupFor: string;
+
     constructor(
         @Inject(PLATFORM_ID) private platformId: Object,
         private http: Http,
@@ -166,10 +171,11 @@ export class OidcSecurityService {
         //this.popup(url, 'QPONS\' AUTHORIZATION PAGE', 500, 500);
 
         window.location.href = url;
+
     }
 
     authorizeWithPopup() {
-
+        this._popupFor = "login";
         let data = this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_well_known_endpoints);
         if (data && data !== '') {
             this.authWellKnownEndpointsLoaded = true;
@@ -201,10 +207,6 @@ export class OidcSecurityService {
 
         //window.location.href = url;
     }
-
-    private CheckForPopupClosedInterval: number;
-    private _checkForPopupClosedTimer: any;
-    private _popup: any;
 
     popup(url: string, title: string, w: number, h: number) {
       let options: string;
@@ -246,7 +248,10 @@ export class OidcSecurityService {
           this._popup.close();
           if (!this._popup || this._popup.closed) {
               console.log("Popup window closed");
-              this.authorize();
+              if(this._popupFor == "login") {
+                this.authorizedCallback();
+              }
+              //this.authorize();
               this.popup_cleanup();
           }
         }
@@ -262,13 +267,18 @@ export class OidcSecurityService {
         this.oidcSecurityCommon.logDebug('BEGIN authorizedCallback, no auth data');
         this.resetAuthorizationData(isRenewProcess);
 
-        let hash = window.location.hash.substr(1);
+        console.log(window.location.hash);
+
+        let hash = this._popup.location.hash.substr(1);
+
+        console.log(hash);
 
         let result: any = hash.split('&').reduce(function (result: any, item: string) {
             let parts = item.split('=');
             result[parts[0]] = parts[1];
             return result;
         }, {});
+
         this.oidcSecurityCommon.store(this.oidcSecurityCommon.storage_auth_result, result);
 
         this.oidcSecurityCommon.logDebug(result);
@@ -446,7 +456,8 @@ export class OidcSecurityService {
             if (this.authConfiguration.start_checksession && this.checkSessionChanged) {
                 this.oidcSecurityCommon.logDebug('only local login cleaned up, server session has changed');
             } else {
-                window.location.href = url;
+                this._popupFor = "logout";
+                this.popup(url, 'QPONS\' LOGOUT PAGE', 800, 800);
             }
         } else {
             this.resetAuthorizationData(false);
