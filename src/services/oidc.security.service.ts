@@ -204,7 +204,7 @@ export class OidcSecurityService {
 
         let url = this.createAuthorizeUrl(nonce, state, this.authWellKnownEndpoints.authorization_endpoint);
 
-        if(this._popup != null || this._popup != undefined) {
+        if(this._popupFor == "afterRegistration") {
           this._popup.location.href = url;
         } else {
           this.popup(url, 'QPONS\' AUTHORIZATION PAGE', 800, 800);
@@ -214,7 +214,6 @@ export class OidcSecurityService {
     }
 
     popup(url: string, title: string, w: number, h: number) {
-      let options: string;
       this.CheckForPopupClosedInterval = 2000;
 
       let dualScreenLeft = window.screenLeft != undefined ? window.screenLeft : 0;
@@ -226,6 +225,9 @@ export class OidcSecurityService {
       let left = ((width / 2) - (w / 2)) + dualScreenLeft;
       let top = ((height / 2) - (h / 2)) + dualScreenTop;
 
+      let options: string;
+
+      options = "";
       options += 'toolbar=no,location=no,directories=no,status=no';
       options += ',menubar=no,scrollbars=no,resizable=no,copyhistory=no';
 
@@ -236,8 +238,10 @@ export class OidcSecurityService {
 
       this._popup = window.open(url, title, options);
       if(this._popupFor == "login") {
+        //console.log("login");
         this._checkForPopupClosedTimer = window.setInterval(this._checkForPopupClosed.bind(this), this.CheckForPopupClosedInterval);
       } else if(this._popupFor == "logout") {
+        //console.log("logout");
         this._checkForPopupClosedTimer = window.setInterval(this._checkForLogoutPopupClosed.bind(this), this.CheckForPopupClosedInterval);
       }
     }
@@ -255,6 +259,7 @@ export class OidcSecurityService {
         //console.log(this._popup.location.href);
         if(this._popup.location.href != 'about:blank' && this._popup.location.href != undefined) {
           if(this._popup.location.href != 'http://localhost:4200/login') {
+            window.clearInterval(this._checkForPopupClosedTimer);
             this._popup.close();
             if (!this._popup || this._popup.closed) {
                 //console.log("Popup window closed");
@@ -263,7 +268,10 @@ export class OidcSecurityService {
                 //this.authorize();
             }
           } else {
+            window.clearInterval(this._checkForPopupClosedTimer);
             if (!this._popup || this._popup.closed) {
+              this.popup_cleanup();
+            } else {
               this.authorizeWithPopup();
             }
           }
@@ -278,10 +286,10 @@ export class OidcSecurityService {
       try {
         //console.log(this._popup.location.href);
         if(this._popup.location.href != 'about:blank') {
+          window.clearInterval(this._checkForPopupClosedTimer);
           this._popup.close();
           if (!this._popup || this._popup.closed) {
-              console.log("Popup window closed");
-              //this.authorize();
+              //console.log("Popup window closed");
               this.popup_cleanup();
           }
         }
