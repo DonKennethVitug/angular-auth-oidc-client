@@ -30,7 +30,7 @@ export class OidcSecurityService {
     private _userData = new BehaviorSubject<any>('');
     private _userDataValue: boolean;
 
-    private oidcSecurityValidation: OidcSecurityValidation;
+    public oidcSecurityValidation: OidcSecurityValidation;
     private errorMessage: string;
     private jwtKeys: JwtKeys;
     private authWellKnownEndpointsLoaded = false;
@@ -418,7 +418,7 @@ export class OidcSecurityService {
             });
     }
 
-    refreshSessionCallback(doc: any) {
+    refreshSessionCallback(href: any) {
       return new Promise((resolve, reject) => {
         let silentRenew = this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_silent_renew_running);
         let isRenewProcess = (silentRenew === 'running');
@@ -426,9 +426,9 @@ export class OidcSecurityService {
         this.oidcSecurityCommon.logDebug('BEGIN authorizedCallback, no auth data');
         this.resetAuthorizationData(isRenewProcess);
 
-        console.log(doc.location.href);
+        console.log(href);
 
-        let hash = doc.location.hash.substr(1);
+        let hash = href;
 
         console.log(hash);
 
@@ -489,44 +489,44 @@ export class OidcSecurityService {
                                                             this.successful_validation();
                                                         } else {
                                                             this.oidcSecurityCommon.logWarning('authorizedCallback incorrect at_hash');
-                                                            reject();
+
                                                         }
                                                     } else {
                                                         authResponseIsValid = true;
                                                         this.successful_validation();
-                                                        reject();
+
                                                     }
                                                 } else {
                                                     this.oidcSecurityCommon.logWarning('authorizedCallback token expired');
-                                                    reject();
+
                                                 }
                                             } else {
                                                 this.oidcSecurityCommon.logWarning('authorizedCallback incorrect aud');
-                                                reject();
+
                                             }
                                         } else {
                                             this.oidcSecurityCommon.logWarning('authorizedCallback incorrect iss does not match authWellKnownEndpoints issuer');
-                                            reject();
+
                                         }
                                     } else {
                                         this.oidcSecurityCommon.logWarning('authorizedCallback Validation, iat rejected id_token was issued too far away from the current time');
-                                        reject();
+
                                     }
                                 } else {
                                     this.oidcSecurityCommon.logDebug('authorizedCallback Validation, one of the REQUIRED properties missing from id_token');
-                                    reject();
+
                                 }
                             } else {
                                 this.oidcSecurityCommon.logWarning('authorizedCallback incorrect nonce');
-                                reject();
+
                             }
                         } else {
                             this.oidcSecurityCommon.logDebug('authorizedCallback Signature validation failed id_token');
-                            reject();
+
                         }
                     } else {
                         this.oidcSecurityCommon.logWarning('authorizedCallback incorrect state');
-                        reject();
+
                     }
                 }
 
@@ -540,17 +540,19 @@ export class OidcSecurityService {
                               resolve();
                                 //this.router.navigate([this.authConfiguration.startup_route]);
                             } else {
-                              reject();
+                              resolve();
                                 //this.router.navigate([this.authConfiguration.unauthorized_route]);
                             }
                         });
                     } else {
+                      resolve();
                         //this.router.navigate([this.authConfiguration.startup_route]);
                     }
                     resolve();
                 } else { // some went wrong
                     this.oidcSecurityCommon.logDebug('authorizedCallback, token(s) validation failed, resetting');
                     this.resetAuthorizationData(false);
+                    resolve();
                     //this.router.navigate([this.authConfiguration.unauthorized_route]);
                 }
             });
@@ -641,7 +643,7 @@ export class OidcSecurityService {
         }
     }
 
-    private successful_validation() {
+    public successful_validation() {
         this.oidcSecurityCommon.store(this.oidcSecurityCommon.storage_auth_nonce, '');
         this.oidcSecurityCommon.store(this.oidcSecurityCommon.storage_auth_state_control, '');
         this.oidcSecurityCommon.logDebug('AuthorizedCallback token(s) validated, continue');
@@ -663,7 +665,7 @@ export class OidcSecurityService {
         this.oidcSecuritySilentRenew.startRenew(url);
     }
 
-    private setAuthorizationData(access_token: any, id_token: any) {
+    public setAuthorizationData(access_token: any, id_token: any) {
         if (this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_access_token) !== '') {
             this.oidcSecurityCommon.store(this.oidcSecurityCommon.storage_access_token, '');
         }
@@ -709,7 +711,7 @@ export class OidcSecurityService {
       };
     }
 
-    private resetAuthorizationData(isRenewProcess: boolean) {
+    public resetAuthorizationData(isRenewProcess: boolean) {
         if (!isRenewProcess) {
             this.setIsAuthorized(false);
             this.oidcSecurityCommon.resetStorageData(isRenewProcess);
@@ -745,7 +747,7 @@ export class OidcSecurityService {
             error => this.errorMessage = <any>error);
     }
 
-    private getSigningKeys(): Observable<JwtKeys> {
+    public getSigningKeys(): Observable<JwtKeys> {
         this.oidcSecurityCommon.logDebug('jwks_uri: ' + this.authWellKnownEndpoints.jwks_uri);
         return this.http.get(this.authWellKnownEndpoints.jwks_uri)
             .map(this.extractData)
