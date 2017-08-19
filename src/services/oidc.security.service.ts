@@ -547,6 +547,7 @@ export class OidcSecurityService {
                     } else {
                         //this.router.navigate([this.authConfiguration.startup_route]);
                     }
+                    resolve();
                 } else { // some went wrong
                     this.oidcSecurityCommon.logDebug('authorizedCallback, token(s) validation failed, resetting');
                     this.resetAuthorizationData(false);
