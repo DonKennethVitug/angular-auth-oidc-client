@@ -8,5 +8,7 @@ export { OidcSecurityCommon } from './services/oidc.security.common';
 export { OidcSecurityStorage, BrowserStorage } from './services/oidc.security.storage';
 export { AuthWellKnownEndpoints } from './services/auth.well-known-endpoints';
 
+export { JwtKeys } from './services/jwtkeys';
+
 export { AuthConfiguration, OpenIDImplicitFlowConfiguration, DefaultConfiguration } from './modules/auth.configuration';
 export { AuthModule } from './modules/auth.module';
