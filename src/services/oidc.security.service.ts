@@ -419,6 +419,7 @@ export class OidcSecurityService {
     }
 
     refreshSessionCallback(doc: any) {
+      return new Promise((resolve, reject) => {
         let silentRenew = this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_silent_renew_running);
         let isRenewProcess = (silentRenew === 'running');
 
@@ -488,34 +489,44 @@ export class OidcSecurityService {
                                                             this.successful_validation();
                                                         } else {
                                                             this.oidcSecurityCommon.logWarning('authorizedCallback incorrect at_hash');
+                                                            reject();
                                                         }
                                                     } else {
                                                         authResponseIsValid = true;
                                                         this.successful_validation();
+                                                        reject();
                                                     }
                                                 } else {
                                                     this.oidcSecurityCommon.logWarning('authorizedCallback token expired');
+                                                    reject();
                                                 }
                                             } else {
                                                 this.oidcSecurityCommon.logWarning('authorizedCallback incorrect aud');
+                                                reject();
                                             }
                                         } else {
                                             this.oidcSecurityCommon.logWarning('authorizedCallback incorrect iss does not match authWellKnownEndpoints issuer');
+                                            reject();
                                         }
                                     } else {
                                         this.oidcSecurityCommon.logWarning('authorizedCallback Validation, iat rejected id_token was issued too far away from the current time');
+                                        reject();
                                     }
                                 } else {
                                     this.oidcSecurityCommon.logDebug('authorizedCallback Validation, one of the REQUIRED properties missing from id_token');
+                                    reject();
                                 }
                             } else {
                                 this.oidcSecurityCommon.logWarning('authorizedCallback incorrect nonce');
+                                reject();
                             }
                         } else {
                             this.oidcSecurityCommon.logDebug('authorizedCallback Signature validation failed id_token');
+                            reject();
                         }
                     } else {
                         this.oidcSecurityCommon.logWarning('authorizedCallback incorrect state');
+                        reject();
                     }
                 }
 
@@ -526,8 +537,10 @@ export class OidcSecurityService {
                     if (this.authConfiguration.auto_userinfo) {
                         this.getUserinfo(isRenewProcess, result, id_token, decoded_id_token).subscribe((response) => {
                             if (response) {
+                              resolve();
                                 //this.router.navigate([this.authConfiguration.startup_route]);
                             } else {
+                              reject();
                                 //this.router.navigate([this.authConfiguration.unauthorized_route]);
                             }
                         });
@@ -540,6 +553,7 @@ export class OidcSecurityService {
                     //this.router.navigate([this.authConfiguration.unauthorized_route]);
                 }
             });
+      });
     }
 
     getUserinfo(isRenewProcess = false, result?: any, id_token?: any, decoded_id_token?: any): Observable<boolean> {
