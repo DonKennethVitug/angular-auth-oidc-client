@@ -540,19 +540,18 @@ export class OidcSecurityService {
                               resolve();
                                 //this.router.navigate([this.authConfiguration.startup_route]);
                             } else {
-                              resolve();
+                              reject();
                                 //this.router.navigate([this.authConfiguration.unauthorized_route]);
                             }
                         });
                     } else {
-                      resolve();
+                      reject();
                         //this.router.navigate([this.authConfiguration.startup_route]);
                     }
-                    resolve();
                 } else { // some went wrong
                     this.oidcSecurityCommon.logDebug('authorizedCallback, token(s) validation failed, resetting');
                     this.resetAuthorizationData(false);
-                    resolve();
+                    reject();
                     //this.router.navigate([this.authConfiguration.unauthorized_route]);
                 }
             });
