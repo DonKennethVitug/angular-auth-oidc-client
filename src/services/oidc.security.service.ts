@@ -255,7 +255,9 @@ export class OidcSecurityService {
       try {
         //console.log(this._popup.location.href);
         if(this._popup.location.href != 'about:blank' && this._popup.location.href != undefined) {
-          if(this._popup.location.href != 'http://localhost:4200/login') {
+            let a = this._popup.location.href.split('/');
+            a = a[(a.length - 1)];
+          if(a != 'login') {
             this._popup.close();
             if (!this._popup || this._popup.closed) {
                 //console.log("Popup window closed");
