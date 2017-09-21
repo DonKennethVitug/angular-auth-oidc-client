@@ -64,7 +64,7 @@ export class OidcSecurityCheckSession {
                 let session_state = this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_session_state);
                 console.log("checking session...", session_state);
                 if (session_state && session_state !== '') {
-                    this.sessionIframe.contentWindow.postMessage(clientId + ' ' + session_state, this.authConfiguration.stsServer);
+                    //this.sessionIframe.contentWindow.postMessage(clientId + ' ' + session_state, this.authConfiguration.stsServer);
                 }
             });
             } catch(e) {
