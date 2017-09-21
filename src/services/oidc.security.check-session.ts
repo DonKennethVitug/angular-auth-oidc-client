@@ -58,25 +58,18 @@ export class OidcSecurityCheckSession {
             .timeInterval()
             .pluck('interval')
             .take(10000);
-
+            try {
             let subscription = source.subscribe(() => {
                 this.oidcSecurityCommon.logDebug(this.sessionIframe);
                 let session_state = this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_session_state);
                 console.log("checking session...", session_state);
                 if (session_state && session_state !== '') {
-                    try {
                     this.sessionIframe.contentWindow.postMessage(clientId + ' ' + session_state, this.authConfiguration.stsServer);
-                    } catch(e) {
-                    
-                    }
                 }
-            },
-            (err: any) => {
-                this.oidcSecurityCommon.logError('pollServerSession error: ' + err);
-            },
-            () => {
-                this.oidcSecurityCommon.logDebug('checksession pollServerSession completed');
             });
+            } catch(e) {
+            	
+            }
     }
 
     private messageHandler(e: any) {
