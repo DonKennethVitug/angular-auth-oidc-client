@@ -62,7 +62,7 @@ export class OidcSecurityCheckSession {
             let subscription = source.subscribe(() => {
                 this.oidcSecurityCommon.logDebug(this.sessionIframe);
                 let session_state = this.oidcSecurityCommon.retrieve(this.oidcSecurityCommon.storage_session_state);
-                console.log("checking session...", session_state);
+                //console.log("checking session...", session_state);
                 if (session_state && session_state !== '') {
                     //this.sessionIframe.contentWindow.postMessage(clientId + ' ' + session_state, this.authConfiguration.stsServer);
                 }

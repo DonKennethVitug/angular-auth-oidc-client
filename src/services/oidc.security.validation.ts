@@ -25,8 +25,8 @@ import { KJUR, KEYUTIL, hextob64u } from 'jsrsasign';
 
 @Injectable()
 export class OidcSecurityValidation {
-
     constructor(private oidcSecurityCommon: OidcSecurityCommon) {
+        
     }
 
     // id_token C7: The current time MUST be before the time represented by the exp Claim (possibly allowing for some small leeway to account for clock skew).
@@ -182,7 +182,10 @@ export class OidcSecurityValidation {
             if (encode) {
                 return encoded;
             }
-            data = JSON.parse(this.urlBase64Decode(encoded));
+            if(encoded != undefined) {
+                data = JSON.parse(this.urlBase64Decode(encoded));
+            }
+            
         }
 
         return data;
@@ -342,20 +345,22 @@ export class OidcSecurityValidation {
     }
 
     private urlBase64Decode(str: string) {
-        let output = str.replace('-', '+').replace('_', '/');
-        switch (output.length % 4) {
-            case 0:
-                break;
-            case 2:
-                output += '==';
-                break;
-            case 3:
-                output += '=';
-                break;
-            default:
-                throw 'Illegal base64url string!';
+        if(str != undefined && str != null) {
+            let output = str.replace('-', '+').replace('_', '/');
+            switch (output.length % 4) {
+                case 0:
+                    break;
+                case 2:
+                    output += '==';
+                    break;
+                case 3:
+                    output += '=';
+                    break;
+                default:
+                    throw 'Illegal base64url string!';
+            }
+    
+            return window.atob(output);
         }
-
-        return window.atob(output);
     }
 }
